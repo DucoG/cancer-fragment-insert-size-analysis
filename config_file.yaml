@@ -1,0 +1,2 @@
+datafile: raw_data.csv
+conda_env: "wgs"

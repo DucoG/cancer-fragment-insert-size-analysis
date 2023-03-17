@@ -1,0 +1,14 @@
+# Ignore data files
+*.bam
+*.bai
+*.fastq.gz
+*.csv
+*.tsv
+*.pdf
+
+# Ignore output folders
+insert_size_metrics/
+insert_size_histograms/
+combined_histogram/
+summary_statistics/
+.snakemake/
