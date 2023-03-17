@@ -28,14 +28,25 @@ def plot_combined_histogram(benign_metrics_files, malignant_metrics_files, outpu
     plt.close()
 
     # Save plotting data to a file
-    plotting_data = pd.concat([benign_mean, benign_std, malignant_mean, malignant_std], axis=1)
-    plotting_data.columns = ["insert_size", "benign_mean", "benign_std", "insert_size_2", "malignant_mean", "malignant_std"]
-    plotting_data.drop("insert_size_2", axis=1, inplace=True)
+    benign_mean.columns = ["insert_size", "benign_mean"]
+    benign_std.columns = ["insert_size", "benign_std"]
+    malignant_mean.columns = ["insert_size", "malignant_mean"]
+    malignant_std.columns = ["insert_size", "malignant_std"]
+    
+    plotting_data = pd.merge(benign_mean, benign_std, on="insert_size")
+    plotting_data = pd.merge(plotting_data, malignant_mean, on="insert_size")
+    plotting_data = pd.merge(plotting_data, malignant_std, on="insert_size")
+    
     plotting_data.to_csv(plotting_data_file, index=False)
 
 if __name__ == "__main__":
-    benign_metrics_files = sys.argv[1:-3]
-    malignant_metrics_files = sys.argv[-3]
+    try:
+        double_hyphen_index = sys.argv.index("--")
+    except ValueError:
+        raise ValueError("Please separate benign and malignant metrics files with a '--' in the command line arguments.")
+    
+    benign_metrics_files = sys.argv[1:double_hyphen_index]
+    malignant_metrics_files = sys.argv[double_hyphen_index+1:-2]
     output_file = sys.argv[-2]
     plotting_data_file = sys.argv[-1]
     plot_combined_histogram(benign_metrics_files, malignant_metrics_files, output_file, plotting_data_file)

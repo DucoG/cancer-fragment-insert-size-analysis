@@ -1,3 +1,6 @@
+# ignore testing file
+testing.ipynb
+
 # Ignore data files
 *.bam
 *.bai

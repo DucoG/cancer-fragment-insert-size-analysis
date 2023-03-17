@@ -54,8 +54,9 @@ rule generate_combined_histogram:
     conda:
         config['conda_env']
     shell:
-        "python scripts/generate_combined_histogram.py {input.benign_metrics} {input.malignant_metrics} {output.histogram} {output.plotting_data}"
-
+        "python scripts/generate_combined_histogram.py "
+        "{input.benign_metrics} -- {input.malignant_metrics} "
+        "{output.histogram} {output.plotting_data}"
 
 rule calculate_summary_statistics:
     input:
