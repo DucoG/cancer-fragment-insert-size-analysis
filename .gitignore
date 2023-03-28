@@ -8,6 +8,7 @@ testing.ipynb
 *.csv
 *.tsv
 *.pdf
+*.txt
 
 # Ignore output folders
 insert_size_metrics/
@@ -15,3 +16,6 @@ insert_size_histograms/
 combined_histogram/
 summary_statistics/
 .snakemake/
+samtools_stats/
+data/
+nucleosome_distance/
