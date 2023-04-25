@@ -129,5 +129,5 @@ rule paired_calculate_nucleosome_distance:
     conda:
         config['conda_env']
     shell:
-        "python scripts/paired_calculate_nucleosome_distance.py {input.bam} {output.json} --nucleosome_list {input.nuc_list} -u chrY"
+        "python scripts/paired_calculate_nucleosome_distance.py {input.bam} {output.json} --nucleosome_list {input.nuc_list} -u chrY -u chrM"
 
