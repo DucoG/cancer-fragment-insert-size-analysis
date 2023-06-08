@@ -27,7 +27,9 @@ rule all:
         expand('binwise_fragmentomics/{sample}_b500000_fragmentomics.csv', sample=SAMPLES),
         expand('binwise_fragmentomics/{sample}_b100000_fragmentomics.csv', sample=SAMPLES),
         expand('binwise_fragmentomics/{sample}_b50000_fragmentomics.csv', sample=SAMPLES),
-        expand('binwise_fragmentomics/{sample}_b250000_fragmentomics.csv', sample=SAMPLES)
+        expand('binwise_fragmentomics/{sample}_b250000_fragmentomics.csv', sample=SAMPLES),
+        expand('delfi_ratios/{sample}_b{binsize}_delfi_ratios.csv', sample=SAMPLES, binsize=[5000000, 1000000, 500000, 250000])
+        
 
 
 
@@ -125,3 +127,16 @@ rule calculate_binwise_fragmentomics:
         config['conda_env']
     shell:
         "python scripts/binwise_fragmentomics_analyzer.py {input.bam} {input.nuc_list} {wildcards.binsize} chrM {output}"
+
+rule calculate_delfi_ratios:
+    input:
+        bam=lambda wildcards: BAM_PATHS[wildcards.sample],
+        bai=lambda wildcards: BAM_PATHS[wildcards.sample] + ".bai",
+        fasta="/home/d.gaillard/source/PEsWGS-alignment-snakemake/ref_genome/hg19.fa"
+    output:
+        delfi_out="delfi_ratios/{sample}_b{binsize}_delfi_ratios.csv",
+        fragment_distributions="binwise_fragment_length_distributions/{sample}_b{binsize}_fragment_length_distribution.json"
+    conda:
+        config['conda_env']
+    shell:
+        "python scripts/calculate_delfi_ratios.py {input.bam} {input.fasta} {wildcards.binsize} {output.delfi_out} {output.fragment_distributions} chrM"
