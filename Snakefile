@@ -21,7 +21,16 @@ rule all:
         "combined_histogram/combined_histogram.pdf",
         "summary_statistics/fragment_length_statistics.csv",
         "summary_statistics/mito_ratios.csv",
-        expand("nucleosome_distance/{sample}_nucleosome_distance.json", sample=SAMPLES)
+        expand("nucleosome_distance/{sample}_nucleosome_distance.json", sample=SAMPLES),
+        expand('binwise_fragmentomics/{sample}_b1000000_fragmentomics.csv', sample=SAMPLES),
+        expand('binwise_fragmentomics/{sample}_b5000000_fragmentomics.csv', sample=SAMPLES),
+        expand('binwise_fragmentomics/{sample}_b500000_fragmentomics.csv', sample=SAMPLES),
+        expand('binwise_fragmentomics/{sample}_b100000_fragmentomics.csv', sample=SAMPLES),
+        expand('binwise_fragmentomics/{sample}_b50000_fragmentomics.csv', sample=SAMPLES),
+        expand('binwise_fragmentomics/{sample}_b250000_fragmentomics.csv', sample=SAMPLES)
+
+
+
 
 
 rule samtools_stats:
@@ -92,32 +101,6 @@ rule calculate_mito_ratios:
     shell:
         "python scripts/calculate_mito_ratios.py {output} {input}"
 
-# rule to generate a json file for each sample containing the read count per distance to a nucleosome and the flagcount for each read. 
-# (wgs) d.gaillard@darwin:~/paired_ovarian/fragment_lengh_distibution$ python scripts/paired_calculate_nucleosome_distance.py --help
-# Usage: paired_calculate_nucleosome_distance.py [OPTIONS] BAMFILE_PATH
-#                                                OUTPUT_PATH
-
-#   Extracts distance to closest nucleosome for each read from a bamfile.
-
-#   Args:
-
-#       bamfile_path (str): path of input file. If it doesnt end with .bam, it
-#       is assumed to be a text file containing the path for a bam file on each
-#       line.
-
-#       output_path (str): path to output the resulting count array
-
-#       nulceosome_list (str): path to list of nucleosome locations per contig
-#       in tsv format
-
-#       unwanted_chrs (str): unwanted chr
-
-# Options:
-#   --nucleosome_list PATH    path to list containing nucleosome locations on
-#                             contigs in a tsv format  [required]
-#   -u, --unwanted_chrs TEXT  chromosomes to leave out in the analysis.
-#                             Structure to be used: chr1
-#   --help                    Show this message and exit.
 
 rule paired_calculate_nucleosome_distance:
     input:
@@ -131,3 +114,14 @@ rule paired_calculate_nucleosome_distance:
     shell:
         "python scripts/paired_calculate_nucleosome_distance.py {input.bam} {output.json} --nucleosome_list {input.nuc_list} -u chrY -u chrM"
 
+rule calculate_binwise_fragmentomics:
+    input:
+        bam=lambda wildcards: BAM_PATHS[wildcards.sample],
+        bai=lambda wildcards: BAM_PATHS[wildcards.sample] + ".bai",
+        nuc_list="data/nuc_center_list.txt"
+    output:
+        "binwise_fragmentomics/{sample}_b{binsize}_fragmentomics.csv"
+    conda:
+        config['conda_env']
+    shell:
+        "python scripts/binwise_fragmentomics_analyzer.py {input.bam} {input.nuc_list} {wildcards.binsize} chrM {output}"
