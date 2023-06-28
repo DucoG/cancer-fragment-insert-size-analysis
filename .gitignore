@@ -9,6 +9,7 @@ testing.ipynb
 *.tsv
 *.pdf
 *.txt
+*.parquet
 
 # Ignore output folders
 insert_size_metrics/
@@ -19,3 +20,4 @@ summary_statistics/
 samtools_stats/
 data/
 nucleosome_distance/
+binwise_fragment_length_distributions/

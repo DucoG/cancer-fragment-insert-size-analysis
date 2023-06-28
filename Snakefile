@@ -22,13 +22,9 @@ rule all:
         "summary_statistics/fragment_length_statistics.csv",
         "summary_statistics/mito_ratios.csv",
         expand("nucleosome_distance/{sample}_nucleosome_distance.json", sample=SAMPLES),
-        expand('binwise_fragmentomics/{sample}_b1000000_fragmentomics.csv', sample=SAMPLES),
-        expand('binwise_fragmentomics/{sample}_b5000000_fragmentomics.csv', sample=SAMPLES),
-        expand('binwise_fragmentomics/{sample}_b500000_fragmentomics.csv', sample=SAMPLES),
-        expand('binwise_fragmentomics/{sample}_b100000_fragmentomics.csv', sample=SAMPLES),
-        expand('binwise_fragmentomics/{sample}_b50000_fragmentomics.csv', sample=SAMPLES),
-        expand('binwise_fragmentomics/{sample}_b250000_fragmentomics.csv', sample=SAMPLES),
-        expand('delfi_ratios/{sample}_b{binsize}_delfi_ratios.csv', sample=SAMPLES, binsize=[5000000, 1000000, 500000, 250000])
+        expand('binwise_fragmentomics/{sample}_b{binsize}_fragmentomics.csv', sample=SAMPLES, binsize=[5000000, 1000000, 500000, 250000]),
+        expand('delfi_ratios/{sample}_b{binsize}_delfi_ratios.csv', sample=SAMPLES, binsize=[5000000, 1000000, 500000, 250000]),
+        expand('fragment_end_motifs/{sample}_fragment_end_motifs.parquet', sample=SAMPLES)
         
 
 
@@ -140,3 +136,15 @@ rule calculate_delfi_ratios:
         config['conda_env']
     shell:
         "python scripts/calculate_delfi_ratios.py {input.bam} {input.fasta} {wildcards.binsize} {output.delfi_out} {output.fragment_distributions} chrM"
+
+rule calculate_fragment_end_motif_disctributions:
+    input:
+        bam=lambda wildcards: BAM_PATHS[wildcards.sample],
+        bai=lambda wildcards: BAM_PATHS[wildcards.sample] + ".bai",
+        fasta="/home/d.gaillard/source/PEsWGS-alignment-snakemake/ref_genome/hg19.fa"
+    output:
+        fragment_end_motif_distributions="fragment_end_motifs/{sample}_fragment_end_motifs.parquet"
+    conda:
+        config['conda_env']
+    shell:
+        "python scripts/fragment_end_motifs.py {input.bam} {input.fasta} {output.fragment_end_motif_distributions}"
