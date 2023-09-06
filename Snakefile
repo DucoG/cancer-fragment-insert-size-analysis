@@ -24,7 +24,9 @@ rule all:
         expand("nucleosome_distance/{sample}_nucleosome_distance.json", sample=SAMPLES),
         expand('binwise_fragmentomics/{sample}_b{binsize}_fragmentomics.csv', sample=SAMPLES, binsize=[5000000, 1000000, 500000, 250000]),
         expand('delfi_ratios/{sample}_b{binsize}_delfi_ratios.csv', sample=SAMPLES, binsize=[5000000, 1000000, 500000, 250000]),
-        expand('fragment_end_motifs/{sample}_fragment_end_motifs.parquet', sample=SAMPLES)
+        expand('fragment_end_motifs/{sample}_fragment_end_motifs.parquet', sample=SAMPLES),
+        expand('fragment_end_motifs_optimized/{sample}_fragment_end_motifs.parquet', sample=SAMPLES),
+        "iwfaf_table/iwfaf_dataframe.csv"
         
 
 
@@ -148,3 +150,27 @@ rule calculate_fragment_end_motif_disctributions:
         config['conda_env']
     shell:
         "python scripts/fragment_end_motifs.py {input.bam} {input.fasta} {output.fragment_end_motif_distributions}"
+
+rule calculate_fragment_end_motif_disctributions_optimized:
+    input:
+        bam=lambda wildcards: BAM_PATHS[wildcards.sample],
+        bai=lambda wildcards: BAM_PATHS[wildcards.sample] + ".bai",
+        fasta="/ssd/d.gaillard/hg19.fa",
+        RPR_file='/ssd/d.gaillard/RPR_bool.pickle'
+    output:
+        fragment_end_motif_distributions="fragment_end_motifs_optimized/{sample}_fragment_end_motifs.parquet"
+    conda:
+        config['conda_env']
+    shell:
+        "python scripts/fragment_end_motifs_iwfaf_optimized.py {input.bam} {input.fasta} {input.RPR_file} {output.fragment_end_motif_distributions}"
+
+
+rule calculate_iwfaf_dataframe:
+    input:
+        fragment_end_motif_distributions_optimized=expand('fragment_end_motifs_optimized/{sample}_fragment_end_motifs.parquet', sample=SAMPLES)
+    output:
+        iwfaf_dataframe="iwfaf_table/iwfaf_dataframe.csv"
+    conda:
+        config['conda_env']
+    shell:
+        "python scripts/calculate_iwfaf_from_parquet.py --output {output.iwfaf_dataframe} {input.fragment_end_motif_distributions_optimized}"
